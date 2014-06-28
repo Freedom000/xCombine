@@ -33,6 +33,16 @@ public abstract class Module extends Plugin {
         super(context);
     }
 
+    private ClassLoader classLoader;
+
+    public ClassLoader getClassLoader() {
+        return classLoader;
+    }
+
+    public void setClassLoader(ClassLoader classLoader) {
+        this.classLoader = classLoader;
+    }
+
     public abstract List<PluginDependence> getPluginDependencies();
 
     public abstract boolean isDisabled();

@@ -17,14 +17,14 @@ package com.lidroid.plugin.mop;
 
 import com.lidroid.plugin.Container;
 import com.lidroid.plugin.Module;
-import com.lidroid.plugin.PluginManager;
+import com.lidroid.plugin.Plugin;
 import com.lidroid.plugin.util.ReflectUtil;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.Map;
 
 /**
  * Created with IntelliJ IDEA.
@@ -42,23 +42,14 @@ public class MopImplCaller {
 
     private MopAgent mopAgent;
 
-    private static PluginManager pluginManager;
-
     protected MopImplCaller(StackTraceElement callerStackTraceElement, Object... args) {
-
-        if (pluginManager == null) {
-            pluginManager = PluginManager.getInstance();
-            if (pluginManager == null) {
-                return;
-            }
-        }
 
         this.args = args;
 
         String callerClassName = callerStackTraceElement.getClassName();
         methodName = callerStackTraceElement.getMethodName();
 
-        Container container = pluginManager.getContainer();
+        Container container = Plugin.getContainer();
 
         boolean isContainer = !callerClassName.endsWith(Module.APPOINT_MODULE_CLASS_NAME);
 
@@ -74,7 +65,7 @@ public class MopImplCaller {
             }
         } else {
             String packageName = callerClassName.substring(0, callerClassName.lastIndexOf("."));
-            Class clazz = pluginManager.getModuleByPackageName(packageName).getClass();
+            Class clazz = Plugin.getModule(packageName).getClass();
             mopAgent = MopAgentUtil.getMopAgentAnnotation(
                     clazz,
                     methodName, args);
@@ -95,18 +86,18 @@ public class MopImplCaller {
             switch (mopAgent.targetType()) {
                 case Container: {
                     targets = new ArrayList<Object>(2);
-                    targets.add(container.getMainActivity());
+                    targets.add(container.getAttachedActivity());
                     targets.add(container);
                     break;
                 }
                 case Module: {
                     targets = new ArrayList<Object>(1);
-                    targets.add(pluginManager.getModuleByPackageName(mopAgent.packageName()));
+                    targets.add(Plugin.getModule(mopAgent.packageName()));
                     break;
                 }
                 case AllModules: {
                     targets = new ArrayList<Object>();
-                    ConcurrentHashMap<String, Module> modules = pluginManager.getAllModules();
+                    Map<String, Module> modules = Plugin.getAllModules();
                     if (modules != null) {
                         for (Module module : modules.values()) {
                             targets.add(module);
@@ -116,9 +107,9 @@ public class MopImplCaller {
                 }
                 case All: {
                     targets = new ArrayList<Object>();
-                    targets.add(container.getMainActivity());
+                    targets.add(container.getAttachedActivity());
                     targets.add(container);
-                    ConcurrentHashMap<String, Module> modules = pluginManager.getAllModules();
+                    Map<String, Module> modules = Plugin.getAllModules();
                     if (modules != null) {
                         for (Module module : modules.values()) {
                             targets.add(module);

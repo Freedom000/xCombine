@@ -18,6 +18,7 @@ package com.lidroid.plugin;
 import android.content.Context;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
+import android.text.TextUtils;
 import dalvik.system.PathClassLoader;
 
 import java.lang.reflect.Constructor;
@@ -30,19 +31,22 @@ import java.util.concurrent.ConcurrentHashMap;
  * Date: 13-6-17
  * Time: PM 2:18
  */
-public class PluginFactory {
+/* package */ class PluginFactory {
 
-    protected final Container container;
+    public final Container container;
 
     private static String containerSharedUserID;
 
     protected PluginFactory(Container container) {
         this.container = container;
         try {
-            PackageManager pm = container.context.getPackageManager();
+            PackageManager pm = container.mContext.getPackageManager();
             containerSharedUserID = pm.getPackageInfo(container.getPluginInfo().packageName, 0).sharedUserId;
         } catch (PackageManager.NameNotFoundException e) {
-            containerSharedUserID = "com.lidroid.plugin";
+        } finally {
+            if (TextUtils.isEmpty(containerSharedUserID)) {
+                containerSharedUserID = "com.lidroid.plugin";
+            }
         }
     }
 
@@ -60,12 +64,13 @@ public class PluginFactory {
      */
     protected void loadAllModules() {
 
-        PackageManager pm = container.context.getPackageManager();
+        PackageManager pm = container.mContext.getPackageManager();
         List<PackageInfo> packageInfoList = pm.getInstalledPackages(PackageManager.GET_UNINSTALLED_PACKAGES);
 
+        String containerPkgName = container.getPluginInfo().packageName;
         for (PackageInfo info : packageInfoList) {
             if (containerSharedUserID.equals(info.sharedUserId)
-                    && !container.getPluginInfo().packageName.equals(info.packageName)) {
+                    && !containerPkgName.equals(info.packageName)) {
                 loadModule(info);
             }
         }
@@ -91,20 +96,24 @@ public class PluginFactory {
 
             try {
 
-                Context moduleContext = container.context.createPackageContext(
+                Context moduleContext = container.mContext.createPackageContext(
                         info.packageName,
                         Context.CONTEXT_INCLUDE_CODE | Context.CONTEXT_IGNORE_SECURITY);
 
                 PathClassLoader classLoader = new PathClassLoader(
                         info.applicationInfo.sourceDir,
-                        container.context.getClassLoader());
+                        container.mContext.getClassLoader());
 
                 Class clazz = classLoader.loadClass(
                         info.packageName + "." + Module.APPOINT_MODULE_CLASS_NAME);
 
-
                 Constructor constructor = clazz.getConstructor(Context.class);
                 Module module = (Module) constructor.newInstance(moduleContext);
+                module.setClassLoader(classLoader);
+
+                if (module.isDisabled()) {
+                    Plugin.setModuleDisabled(module, true);
+                }
 
                 // init the module completely.
                 container.onModuleInitialised(module);

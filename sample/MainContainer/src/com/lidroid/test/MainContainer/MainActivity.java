@@ -24,11 +24,11 @@ import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import com.lidroid.plugin.Module;
-import com.lidroid.plugin.PluginManager;
+import com.lidroid.plugin.Plugin;
 import com.lidroid.plugin.PluginMessage;
 
 import java.util.Date;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.Map;
 
 public class MainActivity extends Activity implements View.OnClickListener {
 
@@ -81,8 +81,8 @@ public class MainActivity extends Activity implements View.OnClickListener {
     public void onClick(View v) {
 
         // send test msg
-        ConcurrentHashMap<String, Module> modules = PluginManager.getInstance().getAllModules();
-        PluginMessage msg = new PluginMessage("biu biu, i'm a msg.", 123, new Date(), mTextView);
+        Map<String, Module> modules = Plugin.getAllModules();
+        PluginMessage msg = new PluginMessage(123, "biu biu, i'm a msg.", new Date(), mTextView);
         for (Module module : modules.values()) {
             mContainer.sendMessage(msg, module);
         }

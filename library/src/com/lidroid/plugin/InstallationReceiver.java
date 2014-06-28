@@ -29,11 +29,9 @@ public class InstallationReceiver extends BroadcastReceiver {
     @Override
     public void onReceive(Context context, Intent intent) {
 
-        if (intent.getAction().equals(Intent.ACTION_PACKAGE_ADDED)) {
-            PluginManager.getInstance().reLoadPlugin();
-        }
-
-        if (intent.getAction().equals(Intent.ACTION_PACKAGE_REMOVED)) {
+        if (Intent.ACTION_PACKAGE_ADDED.equals(intent.getAction())) {
+            PluginManager.getInstance().reloadPlugin();
+        } else if (Intent.ACTION_PACKAGE_REMOVED.equals(intent.getAction())) {
             String packageName = intent.getDataString();
             PluginManager.getInstance().uninstallModule(packageName);
         }

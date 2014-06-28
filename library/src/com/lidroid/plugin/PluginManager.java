@@ -23,7 +23,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * Date: 13-6-17
  * Time: PM 5:18
  */
-public class PluginManager {
+/* package */ class PluginManager {
 
     private static PluginManager instance;
 
@@ -33,7 +33,7 @@ public class PluginManager {
      * @return
      */
     public static PluginManager getInstance() {
-        if (instance == null && factory != null && factory.container != null) {
+        if (instance == null) {
             instance = new PluginManager();
         }
         return instance;
@@ -58,7 +58,7 @@ public class PluginManager {
         return factory.container;
     }
 
-    public void reLoadPlugin() {
+    public void reloadPlugin() {
         factory.loadAllModules();
     }
 

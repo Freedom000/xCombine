@@ -22,29 +22,35 @@ package com.lidroid.plugin;
  * Time: AM 11:53
  */
 public class PluginMessage {
-    private long id;
-    public String content;
-    public Object[] args;
 
-    public PluginMessage(String content, Object... args) {
+    private static long seed = 0;
+    public long seq;
+    public final int cmd;
+    public final String content;
+    public final Object[] args;
 
-        if (content == null) {
-            throw new IllegalArgumentException("\"content\" must not be null");
-        }
 
+    public PluginMessage(int cmd, String content, Object... args) {
+        this.cmd = cmd;
         this.content = content;
         this.args = args;
-        id = System.currentTimeMillis();
+        seq = seed++;
     }
 
-    public long getId() {
-        return id;
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        PluginMessage that = (PluginMessage) o;
+
+        if (seq != that.seq) return false;
+
+        return true;
     }
 
     @Override
     public int hashCode() {
-        int result = (int) (id ^ (id >>> 32));
-        result = 31 * result + content.hashCode();
-        return result;
+        return (int) (seq ^ (seq >>> 32));
     }
 }

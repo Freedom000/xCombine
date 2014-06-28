@@ -63,12 +63,24 @@ public class ReflectUtil {
         try {
             result = clazz.getMethod(methodName, types);
         } catch (NoSuchMethodException e) {
-            for (int i = 0; i < args.length; i++) {
-                types[i] = args[i].getClass();
-            }
-            try {
-                result = clazz.getMethod(methodName, types);
-            } catch (NoSuchMethodException e1) {
+            if (args != null) {
+                for (int i = 0; i < args.length; i++) {
+                    types[i] = args[i].getClass();
+                }
+                try {
+                    result = clazz.getMethod(methodName, types);
+                } catch (NoSuchMethodException e1) {
+                    Method[] methods = clazz.getMethods();
+                    for (Method method : methods) {
+                        if (methodName.equals(method.getName())) {
+                            Class<?>[] paramTypes = method.getParameterTypes();
+                            if (paramTypes != null && paramTypes.length == args.length) {
+                                result = method;
+                                break;
+                            }
+                        }
+                    }
+                }
             }
         }
         return result;

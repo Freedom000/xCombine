@@ -29,18 +29,20 @@ import com.lidroid.plugin.mop.TargetType;
  * <p/>
  * the container of all modules
  */
-public abstract class Container<T extends Activity> extends Plugin implements ModuleCircleLifeEvent {
+public abstract class Container extends Plugin implements ModuleCircleLifeEvent {
 
     private InstallationReceiver installationReceiver = new InstallationReceiver();
 
-    public Container(T mainActivity) {
-        super(mainActivity);
+    public Container(Activity attachedActivity) {
+        super(attachedActivity);
         PluginManager.init(this);
+        this.attachedActivity = attachedActivity;
     }
 
-    @SuppressWarnings("unchecked")
-    public T getMainActivity() {
-        return (T) this.context;
+    private Activity attachedActivity;
+
+    public Activity getAttachedActivity() {
+        return attachedActivity;
     }
 
     /**
@@ -54,7 +56,7 @@ public abstract class Container<T extends Activity> extends Plugin implements Mo
         filter.addAction(Intent.ACTION_PACKAGE_ADDED);
         filter.addAction(Intent.ACTION_PACKAGE_REMOVED);
         filter.addDataScheme("package");
-        this.context.registerReceiver(installationReceiver, filter);
+        mContext.registerReceiver(installationReceiver, filter);
 
         mopAction();
     }
@@ -65,9 +67,10 @@ public abstract class Container<T extends Activity> extends Plugin implements Mo
      */
     @MopAgent(targetType = TargetType.AllModules, ignoreMopImpl = true)
     public final void onResume() {
-        mopAction();
 
-        PluginManager.getInstance().reLoadPlugin();
+        PluginManager.getInstance().reloadPlugin();
+
+        mopAction();
     }
 
     /**
@@ -78,7 +81,7 @@ public abstract class Container<T extends Activity> extends Plugin implements Mo
     public final void onStop() {
         mopAction();
 
-        this.context.unregisterReceiver(installationReceiver);
+        mContext.unregisterReceiver(installationReceiver);
     }
 
     /**

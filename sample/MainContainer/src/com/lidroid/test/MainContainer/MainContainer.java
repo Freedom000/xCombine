@@ -30,7 +30,7 @@ import com.lidroid.plugin.mop.TargetType;
  * Date: 13-6-18
  * Time: 下午3:06
  */
-public class MainContainer extends Container<MainActivity> {
+public class MainContainer extends Container {
 
     public final static String TAG = "wyouflf";
 
@@ -86,13 +86,13 @@ public class MainContainer extends Container<MainActivity> {
     @Override
     public void onMessageReceived(PluginMessage msg, Plugin from) {
         Log.d(TAG, "onMessageReceived:" + msg.content + ", args:" + msg.args);
-        PluginManager.getInstance().respondMessage(msg, this, from, "he he, i'm a container!");
+        this.respondMessage(msg, from, "response test");
     }
 
     @Override
     public void onMessageResponded(PluginMessage msg, Plugin from, Object result) {
         Log.d(TAG, "onMessageResponded:" + result);
-        getMainActivity().textViewSetText((String) result);
+        ((MainActivity) getAttachedActivity()).textViewSetText((String) result);
     }
 
     @MopAgent(targetType = TargetType.Module, packageName = "com.lidroid.test.ModuleTest")

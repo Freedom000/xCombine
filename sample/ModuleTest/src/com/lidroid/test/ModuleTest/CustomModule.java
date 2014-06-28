@@ -21,7 +21,10 @@ import android.content.Context;
 import android.util.Log;
 import android.view.View;
 import android.widget.TextView;
-import com.lidroid.plugin.*;
+import com.lidroid.plugin.Module;
+import com.lidroid.plugin.Plugin;
+import com.lidroid.plugin.PluginDependence;
+import com.lidroid.plugin.PluginMessage;
 import com.lidroid.plugin.mop.MopImpl;
 
 import java.util.List;
@@ -74,9 +77,9 @@ public class CustomModule extends Module {
     public void onMessageReceived(PluginMessage msg, Plugin from) {
         Log.d(TAG, "onMessageReceived:" + msg.content + ", args:" + msg.args);
 
-        PluginManager.getInstance().respondMessage(msg, this, from, " i'm a reply from the test module. ");
+        this.respondMessage(msg, from, " i'm a reply from the test module. ");
 
-        TextView textView = ((TextView) msg.args[2]);
+        TextView textView = ((TextView) msg.args[1]);
         textView.setTextColor(0xff006699);
         textView.setText(textView.getText() + " the text color changed by msg receiver. ");
     }
@@ -92,6 +95,6 @@ public class CustomModule extends Module {
     public View test(TextView y) {
         y.setBackgroundColor(0xff000000);
         y.setText(y.getText() + " the bg color changed by mop. ");
-        return new CustomTestView(context);
+        return new CustomTestView(this.getContext());
     }
 }

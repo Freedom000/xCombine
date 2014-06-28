@@ -15,12 +15,18 @@
 
 package com.lidroid.plugin;
 
+import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.graphics.drawable.Drawable;
+import com.lidroid.plugin.app.ModuleActivity;
+import com.lidroid.plugin.app.TemplateActivity;
 import com.lidroid.plugin.mop.MopAdapter;
+
+import java.util.Map;
 
 /**
  * Created with IntelliJ IDEA.
@@ -34,15 +40,97 @@ public abstract class Plugin extends MopAdapter {
 
     private PluginInfo info;
 
-    protected final Context context;
+    protected final Context mContext;
 
-    public Plugin(Context context) {
-        this.context = context;
+    protected Plugin(Context context) {
+        if (context == null) {
+            throw new IllegalArgumentException("context may not be null.");
+        }
+
+        Context appContext = context.getApplicationContext();
+        if (appContext != null) {
+            this.mContext = appContext;
+        } else {
+            this.mContext = context;
+        }
     }
 
     public final Context getContext() {
-        return context;
+        return mContext;
     }
+
+    public static Container getContainer() {
+        return PluginManager.getInstance().getContainer();
+    }
+
+    public static Module getModule(String pkgName) {
+        return PluginManager.getInstance().getModuleByPackageName(pkgName);
+    }
+
+    public static <T extends Module> T getModule(Class<T> moduleClazz) {
+        return (T) PluginManager.getInstance().getModuleByPackageName(moduleClazz.getPackage().getName());
+    }
+
+    public static Map<String, Module> getAllModules() {
+        return PluginManager.getInstance().getAllModules();
+    }
+
+    public static void setModuleDisabled(Module module, boolean disabled) {
+        PluginManager.getInstance().setModuleDisabled(module, disabled);
+    }
+
+    public static void stopModule(Module module) {
+        PluginManager.getInstance().stopModule(module);
+    }
+
+    // #region startModuleActivity
+    public static Class<? extends ModuleActivity> CurrModuleClazz;
+    public static Context CurrModuleContext;
+
+    public synchronized void startModuleActivity(
+            Context acContext,
+            Class<? extends TemplateActivity> templateClazz,
+            Class<? extends ModuleActivity> moduleClazz) {
+        startModuleActivity(acContext, templateClazz, moduleClazz, null);
+    }
+
+    public synchronized void startModuleActivity(
+            Context acContext,
+            Class<? extends TemplateActivity> templateClazz,
+            Class<? extends ModuleActivity> moduleClazz,
+            Intent extras) {
+        Intent intent = new Intent(acContext, templateClazz);
+        if (extras != null) {
+            intent.putExtras(extras);
+        }
+        CurrModuleClazz = moduleClazz;
+        CurrModuleContext = mContext;
+        acContext.startActivity(intent);
+    }
+
+    public synchronized void startModuleActivityForResult(
+            Activity acContext,
+            Class<? extends TemplateActivity> templateClazz,
+            Class<? extends ModuleActivity> moduleClazz,
+            int requestCode) {
+        startModuleActivityForResult(acContext, templateClazz, moduleClazz, 0, null);
+    }
+
+    public synchronized void startModuleActivityForResult(
+            Activity acContext,
+            Class<? extends TemplateActivity> templateClazz,
+            Class<? extends ModuleActivity> moduleClazz,
+            int requestCode,
+            Intent extras) {
+        Intent intent = new Intent(acContext, templateClazz);
+        if (extras != null) {
+            intent.putExtras(extras);
+        }
+        CurrModuleClazz = moduleClazz;
+        CurrModuleContext = mContext;
+        acContext.startActivityForResult(intent, requestCode);
+    }
+    // #endregion startModuleActivity
 
     /**
      * send a msg among plugins,
@@ -53,6 +141,17 @@ public abstract class Plugin extends MopAdapter {
      */
     public final void sendMessage(PluginMessage msg, final Plugin to) {
         PluginManager.getInstance().sendMessage(msg, this, to);
+    }
+
+    /**
+     * send a msg among plugins,
+     * the format of msg comply with appointments of receiver.
+     *
+     * @param msg
+     * @param to
+     */
+    public final void respondMessage(PluginMessage msg, final Plugin to, Object result) {
+        PluginManager.getInstance().respondMessage(msg, this, to, result);
     }
 
     /**

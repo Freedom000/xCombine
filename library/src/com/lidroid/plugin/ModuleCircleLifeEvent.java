@@ -25,7 +25,7 @@ public interface ModuleCircleLifeEvent {
 
     void onModuleFound(String packageName);
 
-    void onModuleValidateError(String packageName, Throwable error);
+    void onModuleValidateError(String path, Throwable error);
 
     void onModuleDependenceError(Module module, PluginDependence dependence);
 
